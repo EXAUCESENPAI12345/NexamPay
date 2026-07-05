@@ -1,18 +1,18 @@
 import os
+import asyncio
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 
 TOKEN = os.getenv("BOT_TOKEN")
-
 VERSION = "6.0.1"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"NexamPay v{VERSION} 🚀\nBot en ligne")
+    await update.message.reply_text(f"NexamPay v{VERSION} 🚀 OK")
 
 async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"[v{VERSION}] Tu as dit: {update.message.text}")
+    await update.message.reply_text(update.message.text)
 
-def main():
+async def run_bot():
     if not TOKEN:
         print("❌ TOKEN manquant")
         return
@@ -22,8 +22,9 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
 
-    print(f"NexamPay v{VERSION} démarré 🚀")
-    app.run_polling(drop_pending_updates=True)
+    print("Bot lancé 🚀")
+
+    await app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(run_bot())
