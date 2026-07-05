@@ -1,31 +1,29 @@
 import os
-import asyncio
-from flask import Flask, request
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 
-TOKEN = os.environ.get("BOT_TOKEN") # Lit le token de Render
-URL = "https://nexampay.onrender.com" # Ton URL Render ici
+TOKEN = os.getenv("BOT_TOKEN")
 
-app = Flask(__name__)
-application = ApplicationBuilder().token(TOKEN).build()
+VERSION = "6.0.1"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Bot déployé ✅")
+    await update.message.reply_text(f"NexamPay v{VERSION} 🚀\nBot en ligne")
 
-application.add_handler(CommandHandler("start", start))
+async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(f"[v{VERSION}] Tu as dit: {update.message.text}")
 
-@app.post(f"/webhook/{TOKEN}")
-async def webhook():
-    update = Update.de_json(request.get_json(force=True), application.bot)
-    await application.process_update(update)
-    return "ok"
+def main():
+    if not TOKEN:
+        print("❌ TOKEN manquant")
+        return
 
-@app.get("/")
-def home():
-    return "Bot is alive"
+    app = Application.builder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
+
+    print(f"NexamPay v{VERSION} démarré 🚀")
+    app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
-    # Active le webhook au démarrage
-    asyncio.run(application.bot.set_webhook(url=f"{URL}/webhook/{TOKEN}"))
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    main()
